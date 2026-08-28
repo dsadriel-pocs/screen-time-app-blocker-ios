@@ -75,7 +75,7 @@ struct ContentView: View {
                 .fill(permissionStatusColor)
                 .frame(width: 8, height: 8)
             
-            Text("Screen Time:")
+            Text("Screen Time Permission:")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
