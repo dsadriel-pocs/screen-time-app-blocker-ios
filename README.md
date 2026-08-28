@@ -17,7 +17,9 @@ A clean, production-ready Proof of Concept (POC) demonstrating how to implement 
   - [5. Ending a Session](#5-ending-a-session)
 - [Project Configuration & Entitlements](#project-configuration--entitlements)
 - [Simulator vs. Physical Device](#simulator-vs-physical-device)
+- [How Screen Time Affects Notifications](#how-screen-time-affects-notifications)
 - [Troubleshooting & Gotchas](#troubleshooting--gotchas)
+- [Exporting `FocusManager.swift` to Other Projects](#exporting-focusmanagerswift-to-other-projects)
 - [Project Structure](#project-structure)
 
 ---
@@ -202,6 +204,27 @@ To use `FamilyControls` in an iOS app:
 | **Third-Party Installed Apps** | Not Available | **Fully Available** |
 
 > **Recommendation:** To observe real system shields appearing over third-party apps (e.g., Instagram, YouTube, Slack), run the app on a **physical device** signed with your Apple Developer Team profile.
+
+---
+
+## How Screen Time Affects Notifications
+
+When an application is shielded by `ManagedSettingsStore`, iOS alters how notifications are handled for that app:
+
+| Notification Behavior | What Happens While Shielded |
+| :--- | :--- |
+| **Banners & Sounds** | **Suppressed.** iOS silences incoming banners, alert sounds, and lock screen alerts for shielded apps. |
+| **Notification Center** | Notifications are held back or silenced while the shield is active. |
+| **Tapping Existing Alerts** | If a notification was already in the Notification Center before the session started, tapping it **will not launch the app**—iOS presents the Screen Time shield instead. |
+| **App Icon Badges** | Red unread badge counts on the app icon are suppressed while shielded. |
+| **Session End** | As soon as Focus Time stops (`store.clearAllSettings()`), the shields lift and queued notifications deliver normally. |
+
+### Screen Time Shielding vs. iOS Focus Modes (Do Not Disturb)
+
+- **Screen Time (`ManagedSettings`)**: Imposes a **hard block** on app access (blocking app launches with a full-screen system shield) and automatically silences notifications for the shielded apps.
+- **iOS Focus Modes**: Primarily **filters notification alerts and sounds**, but leaves the user free to open and use the app.
+
+> **System Immunity ("Always Allowed"):** Apps listed in **iOS Settings > Screen Time > Always Allowed** (such as Phone, Messages, or user-whitelisted apps) have system immunity. Their notifications will continue to alert normally and will never be shielded.
 
 ---
 
