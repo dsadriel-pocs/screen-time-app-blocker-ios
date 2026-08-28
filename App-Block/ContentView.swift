@@ -121,7 +121,7 @@ struct ContentView: View {
         case .denied:
             return "Denied"
         case .notDetermined:
-            return "Not Determined"
+            return "Setup Required"
         @unknown default:
             return "Unknown"
         }
