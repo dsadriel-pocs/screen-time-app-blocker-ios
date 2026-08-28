@@ -17,10 +17,8 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Permission Callout
-                if focusManager.authorizationStatus != .approved {
-                    permissionBar
-                }
+                // MARK: - Permission Status Banner
+                permissionBanner
                 
                 ScrollView {
                     VStack(spacing: 28) {
@@ -34,7 +32,7 @@ struct ContentView: View {
                         appsSection
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 32)
+                    .padding(.top, 24)
                     .padding(.bottom, 16)
                 }
                 
@@ -64,31 +62,81 @@ struct ContentView: View {
             .sheet(isPresented: $showingInfoSheet) {
                 InfoSheet()
             }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                focusManager.refreshAuthorizationStatus()
+            }
         }
     }
     
-    // MARK: - Permission Bar
-    private var permissionBar: some View {
-        Button {
-            Task {
-                try? await focusManager.requestAuthorization()
+    // MARK: - Permission Status Banner
+    private var permissionBanner: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(permissionStatusColor)
+                .frame(width: 8, height: 8)
+            
+            Text("Screen Time:")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Text(permissionStatusTitle)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(permissionStatusColor)
+            
+            Spacer()
+            
+            if focusManager.authorizationStatus != .approved {
+                Button {
+                    if focusManager.authorizationStatus == .denied {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } else {
+                        Task {
+                            try? await focusManager.requestAuthorization()
+                        }
+                    }
+                } label: {
+                    Text(focusManager.authorizationStatus == .denied ? "Open Settings" : "Authorize")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(permissionStatusColor.opacity(0.12)))
+                        .foregroundStyle(permissionStatusColor)
+                }
+                .buttonStyle(.plain)
             }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "hand.raised.fill")
-                    .font(.caption)
-                Text("Screen Time access required")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                Spacer()
-                Text("Enable")
-                    .font(.caption)
-                    .fontWeight(.bold)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color(uiColor: .secondarySystemBackground))
-            .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 9)
+        .background(Color(uiColor: .secondarySystemBackground))
+    }
+    
+    private var permissionStatusTitle: String {
+        switch focusManager.authorizationStatus {
+        case .approved:
+            return "Approved"
+        case .denied:
+            return "Denied"
+        case .notDetermined:
+            return "Not Determined"
+        @unknown default:
+            return "Unknown"
+        }
+    }
+    
+    private var permissionStatusColor: Color {
+        switch focusManager.authorizationStatus {
+        case .approved:
+            return .green
+        case .denied:
+            return .red
+        case .notDetermined:
+            return .orange
+        @unknown default:
+            return .secondary
         }
     }
     

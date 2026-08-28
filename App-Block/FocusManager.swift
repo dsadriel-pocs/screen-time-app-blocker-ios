@@ -80,6 +80,10 @@ public final class FocusManager: ObservableObject {
     // MARK: - Authorization
     public func requestAuthorization() async throws {
         try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
+        refreshAuthorizationStatus()
+    }
+    
+    public func refreshAuthorizationStatus() {
         self.authorizationStatus = AuthorizationCenter.shared.authorizationStatus
     }
     
